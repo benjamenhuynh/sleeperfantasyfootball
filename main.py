@@ -1,5 +1,6 @@
 import requests
 import json
+from stats import get_weekly_player_stats, format_player_stats
 
 # ============================================================
 # Function Name: GetPlayerName
@@ -51,12 +52,13 @@ def GetPlayerPosition(player_id, players):
 #   roster: dictionary containing information for one Sleeper roster
 #   players: dictionary containing all NFL player information
 #   users: list containing all users in the league
+#   player_stats: dictionary containing weekly stats by player ID
 #
 # Return:
-#   None. Prints the roster's players with their positions.
+#   None. Prints the roster's players with their positions and weekly stats.
 # ============================================================
 
-def PrintRoster(roster, players, users):
+def PrintRoster(roster, players, users, player_stats):
 
     StartersArr = []
     BenchArr = []
@@ -74,14 +76,16 @@ def PrintRoster(roster, players, users):
     print("\nSTARTERS")
 
     for playerID in StartersArr:
+        stats = format_player_stats(player_stats.get(playerID))
         print(GetPlayerPosition(playerID, players) + " " +
-              GetPlayerName(playerID, players))
+              GetPlayerName(playerID, players) + " — " + stats)
 
     print("\nBENCH")
 
     for playerID in BenchArr:
+        stats = format_player_stats(player_stats.get(playerID))
         print(GetPlayerPosition(playerID, players) + " " +
-              GetPlayerName(playerID, players))
+              GetPlayerName(playerID, players) + " — " + stats)
     
 # ============================================================
 # Function Name: GetTeamName
@@ -135,8 +139,17 @@ def main():
     response.raise_for_status()
     users = response.json()
 
+    response = requests.get("https://api.sleeper.app/v1/state/nfl")
+    response.raise_for_status()
+    nfl_state = response.json()
+    season = nfl_state["season"]
+    week = nfl_state["week"]
+    season_type = nfl_state.get("season_type", "regular")
+    player_stats = get_weekly_player_stats(season, week, season_type)
+
+    print(f"NFL {season} {season_type} season, week {week}")
     for roster in rosters:
-        PrintRoster(roster, players, users)
+        PrintRoster(roster, players, users, player_stats)
 
 
 if __name__ == "__main__":

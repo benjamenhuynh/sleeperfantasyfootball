@@ -10,6 +10,11 @@ Python project using the Sleeper API to retrieve and analyze fantasy football le
 - Determine player positions
 - Retrieve fantasy team names
 - Separate starters and bench players
+- Display weekly player stats for the current NFL week
+
+The player stats request uses Sleeper's undocumented stats endpoint. The
+request and formatting are in `stats.py`; other functionality remains in
+`main.py` for now.
 
 ## Setup
 
