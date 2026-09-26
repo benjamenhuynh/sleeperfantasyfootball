@@ -1,3 +1,4 @@
+from analytics import CalculateFantasyPoints
 from stats import FormatPlayerStats
 
 
@@ -119,15 +120,40 @@ class Rosters:
     # Return:
     #   Formatted player name, position, and available stats or projection.
     # ============================================================
-    def FormatPlayerLine(self, player_id, lineup_slot=None):
+    def FormatPlayerLine(
+        self,
+        player_id,
+        lineup_slot=None,
+        points_key="pts_ppr",
+        points_label="PPR",
+        scoring_settings=None,
+    ):
+        position = self.Players.GetPlayerPosition(player_id)
         stats = self.PlayerStats.get(str(player_id))
         if stats:
-            stats_text = FormatPlayerStats(stats)
-        else:
-            stats_text = FormatPlayerStats(
-                self.PlayerProjections.get(str(player_id)), label="Proj"
+            display_stats = dict(stats)
+            calculated_points = CalculateFantasyPoints(
+                stats, scoring_settings, position=position
             )
-        position = self.Players.GetPlayerPosition(player_id)
+            if calculated_points is not None:
+                display_stats[points_key] = calculated_points
+            stats_text = FormatPlayerStats(
+                display_stats, points_key=points_key, points_label=points_label
+            )
+        else:
+            projection = self.PlayerProjections.get(str(player_id))
+            display_projection = dict(projection) if projection else None
+            calculated_points = CalculateFantasyPoints(
+                projection, scoring_settings, position=position
+            )
+            if calculated_points is not None:
+                display_projection[points_key] = calculated_points
+            stats_text = FormatPlayerStats(
+                display_projection,
+                label="Proj",
+                points_key=points_key,
+                points_label=points_label,
+            )
         if lineup_slot and lineup_slot not in (position, "BN"):
             position = (f"FLEX ({position})" if lineup_slot in
                         ("FLEX", "REC_FLEX", "WRRB_FLEX") else lineup_slot)

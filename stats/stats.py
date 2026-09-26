@@ -7,7 +7,12 @@
 # Return:
 #   Readable summary of common passing, rushing, receiving, and PPR stats.
 # ============================================================
-def FormatPlayerStats(stats, label=None):
+def FormatPlayerStats(
+    stats,
+    label=None,
+    points_key="pts_ppr",
+    points_label="PPR",
+):
     if not stats:
         return "Stats unavailable" if label is None else f"{label} unavailable"
 
@@ -19,7 +24,7 @@ def FormatPlayerStats(stats, label=None):
         ("rec", "Rec"),
         ("rec_yd", "Rec Yds"),
         ("rec_td", "Rec TD"),
-        ("pts_ppr", "PPR"),
+        (points_key, points_label),
     )
     parts = [f"{field_label} {stats[key]}" for key, field_label in fields if key in stats]
     if not parts:

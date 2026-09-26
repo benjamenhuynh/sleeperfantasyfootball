@@ -73,5 +73,23 @@ and start it with:
 pip install -r requirements-pyqt.txt
 python -m gui.gui_pyqt
 
+The PyQt start/sit comparison can also show recent NFL usage from nflverse, with
+a selectable graph comparing the players' targets, carries, receptions, snaps,
+snap share, target share, air yards, efficiency rates, and touches over their
+last five games. The comparison also reports averages per game for these usage
+metrics. Install this optional data dependency with:
+
+```bash
+pip install -r requirements-nfl-data.txt
+```
+
+Usage data is downloaded when a comparison is made and cached locally for six
+hours under `data/`.
+
+Basic usage calculations live in `analytics/fantasy_metrics.py`. They include
+team target, rush, air-yard, and snap shares; efficiency rates; and Sleeper-style
+fantasy point scoring from league settings. Metrics that lack the required data
+are omitted rather than estimated.
+
 GUI dependencies are optional and are not included in `requirements.txt`.
 All three entry points use `league.py` to load the same Sleeper data.

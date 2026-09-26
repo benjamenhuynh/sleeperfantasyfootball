@@ -103,6 +103,10 @@ class SleeperAPI:
         url = f"{self.BaseURL}/stats/nfl/{season_type}/{season}/{week}"
         return self.Get(url)
 
+    def GetNFLSeasonSchedule(self, season, season_type="regular"):
+        url = f"{self.ProjectionsBaseURL}/schedule/nfl/{season_type}/{season}"
+        return self.Get(url)
+
     # ============================================================
     # Function Name: GetWeeklyPlayerProjections
     #
