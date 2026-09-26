@@ -1,38 +1,31 @@
-import json
-
-from api import SleeperAPI
-from config import DATA_DIRECTORY, LEAGUE_ID
+from league import GetCurrentLeagueData
 from players import Players
-from projections import NormalizeProjections
 from rosters import Rosters
 
+# ============================================================
+# Function Name: main
+#
+# Parameters:
+#   None.
+#
+# Return:
+#   None. Retrieves current league data and prints each roster.
+# ============================================================
 def main():
-    sleeper_api = SleeperAPI()
-
-    rosters = sleeper_api.GetLeagueRosters(LEAGUE_ID)
-    players_data = sleeper_api.GetNFLPlayers()
-    users = sleeper_api.GetLeagueUsers(LEAGUE_ID)
-    nfl_state = sleeper_api.GetNFLState()
-
-    season = nfl_state["season"]
-    week = nfl_state["week"]
-    season_type = nfl_state.get("season_type", "regular")
-    player_stats = sleeper_api.GetWeeklyPlayerStats(season, week, season_type)
-    player_projections = NormalizeProjections(
-        sleeper_api.GetWeeklyPlayerProjections(season, week, season_type)
-    )
-
-    DATA_DIRECTORY.mkdir(parents=True, exist_ok=True)
-    with (DATA_DIRECTORY / "players.json").open("w") as file:
-        json.dump(players_data, file, indent=4)
-
-    player_lookup = Players(players_data)
+    league_data = GetCurrentLeagueData()
+    players = Players(league_data["players"])
     roster_printer = Rosters(
-        player_lookup, users, player_stats, player_projections
+        players,
+        league_data["users"],
+        league_data["player_stats"],
+        league_data["player_projections"],
     )
 
-    print(f"NFL {season} {season_type} season, week {week}")
-    for roster in rosters:
+    print(
+        f"NFL {league_data['season']} {league_data['season_type']} season, "
+        f"week {league_data['week']}"
+    )
+    for roster in league_data["rosters"]:
         roster_printer.PrintRoster(roster)
 
 

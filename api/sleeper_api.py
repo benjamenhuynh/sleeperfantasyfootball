@@ -49,6 +49,9 @@ class SleeperAPI:
     def GetLeagueRosters(self, league_id):
         return self.Get(f"{self.BaseURL}/league/{league_id}/rosters")
 
+    def GetLeague(self, league_id):
+        return self.Get(f"{self.BaseURL}/league/{league_id}")
+
     # ============================================================
     # Function Name: GetNFLPlayers
     #

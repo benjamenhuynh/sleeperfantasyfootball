@@ -15,11 +15,13 @@ class Rosters:
     # Return:
     #   None. Stores data required to process and print rosters.
     # ============================================================
-    def __init__(self, players, users, player_stats, player_projections):
+    def __init__(self, players, users, player_stats, player_projections,
+                 roster_positions=None):
         self.Players = players
         self.Users = users
         self.PlayerStats = player_stats
         self.PlayerProjections = player_projections
+        self.RosterPositions = roster_positions or []
 
     # ============================================================
     # Function Name: GetTeamName
@@ -47,12 +49,24 @@ class Rosters:
     #   Starter player IDs sorted by position.
     # ============================================================
     def GetStarters(self, roster):
-        starters = [
-            player_id
-            for player_id in roster["players"]
-            if player_id in roster["starters"]
-        ]
+        entries = self.GetStarterEntries(roster)
+        if entries:
+            return [player_id for player_id, _ in entries]
+        starters = [player_id for player_id in roster["players"]
+                    if player_id in roster["starters"]]
         return self.SortStarters(starters)
+
+    def GetStarterEntries(self, roster):
+        roster_players = set(roster.get("players", []))
+        starters = roster.get("starters", [])
+        entries = []
+        for index, player_id in enumerate(starters):
+            if player_id in (None, "0", 0) or player_id not in roster_players:
+                continue
+            slot = (self.RosterPositions[index]
+                    if index < len(self.RosterPositions) else "")
+            entries.append((player_id, slot))
+        return entries
 
     # ============================================================
     # Function Name: GetBench
@@ -105,7 +119,7 @@ class Rosters:
     # Return:
     #   Formatted player name, position, and available stats or projection.
     # ============================================================
-    def FormatPlayerLine(self, player_id):
+    def FormatPlayerLine(self, player_id, lineup_slot=None):
         stats = self.PlayerStats.get(str(player_id))
         if stats:
             stats_text = FormatPlayerStats(stats)
@@ -114,8 +128,26 @@ class Rosters:
                 self.PlayerProjections.get(str(player_id)), label="Proj"
             )
         position = self.Players.GetPlayerPosition(player_id)
+        if lineup_slot and lineup_slot not in (position, "BN"):
+            position = (f"FLEX ({position})" if lineup_slot in
+                        ("FLEX", "REC_FLEX", "WRRB_FLEX") else lineup_slot)
         name = self.Players.GetPlayerName(player_id)
-        return f"{position} {name} — {stats_text}"
+        line = f"{position} {name}"
+        if not stats and stats_text == "Proj unavailable":
+            player = self.Players.GetPlayer(player_id) or {}
+            injury_status = player.get("injury_status")
+            if injury_status:
+                injury_detail = player.get("injury_body_part")
+                injury_notes = player.get("injury_notes")
+                injury_text = injury_status
+                if injury_detail:
+                    injury_text += f" ({injury_detail})"
+                if injury_notes:
+                    injury_text += f" — {injury_notes}"
+                line += f" — Injury: {injury_text}"
+        else:
+            line += f" — {stats_text}"
+        return line
 
     # ============================================================
     # Function Name: PrintRoster

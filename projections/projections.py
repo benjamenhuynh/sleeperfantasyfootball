@@ -9,9 +9,14 @@
 # ============================================================
 def NormalizeProjections(projections):
     if isinstance(projections, list):
-        return {
-            str(item["player_id"]): item.get("stats", item)
-            for item in projections
-            if item.get("player_id") is not None
-        }
+        normalized = {}
+        for item in projections:
+            player_id = item.get("player_id")
+            if player_id is None:
+                continue
+            player_stats = dict(item.get("stats", item))
+            if item.get("opponent"):
+                player_stats["opponent"] = item["opponent"]
+            normalized[str(player_id)] = player_stats
+        return normalized
     return projections
